@@ -118,6 +118,7 @@ select length('good morning john') from dual;
 select first_name, substr(first_name, 1, 1) from employees;
 --2.이름을 10자로 간주하여 나머지 부분을 *로 채워보기
 select rpad(first_name, 10, '*') from employees;
+
 /*
 이름의 첫글자를 잘라내고, 이름의 길이(length)를 얻어온다.
 이를 통해 *를 출력하면 첫글자를 제외한 남은 길이만큼 마스킹 처리할 수 있다.
