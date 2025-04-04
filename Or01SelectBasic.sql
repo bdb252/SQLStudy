@@ -2,7 +2,7 @@
 파일명 : Or01SelectBasic.sql
 처음으로 실행해보는 질의어(SQL문 혹은 Query문이라고 함)
 개발자들 사이에서는 '시퀄'이라고 표현하기도 한다.
-설명 : select, where, order by 등 가장 기본적인 DQL문 사용해보기
+설명 : select, where, order by 등 가장 기본적인 SQL문 사용해보기
 */
 
 /*
