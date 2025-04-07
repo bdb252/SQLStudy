@@ -247,11 +247,12 @@ select ename, nvl(mgr, 0) from emp;
 
 --7. decode 함수로 직급에 따라 급여를 인상하여 출력하시오. ‘CLERK’는 200, ‘SALESMAN’은 180, ‘MANAGER’은 150, ‘PRESIDENT’는 100을 인상하여 출력하시오.
 select 
-    ename, job,
+    ename, job, sal,
     decode(job,
     'CLERK', sal+200, 
     'SALESMAN', sal+180, 
     'MANAGER', sal+150, 
-    'PRESIDENT', sal+100) as plussal
+    'PRESIDENT', sal+100,
+    sal) as plussal
 from emp;
 
