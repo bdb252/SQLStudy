@@ -20,10 +20,10 @@ from employees;
 */
 select 
     job_id,
-    max(salary) as MaxPay,
-    min(salary) as MinPay,
-    sum(salary) as SumPay,
-    round(avg(salary)) as AvgPay
+    to_char(max(salary) ,'999,000') as MaxPay,
+    to_char(min(salary) ,'999,000') as MinPay,
+    to_char(sum(salary) ,'999,000') as SumPay,
+    to_char(round(avg(salary)) ,'999,000') as AvgPay
 from employees
 group by job_id;
 
@@ -34,7 +34,12 @@ group by job_id;
 select job_id, count(*) "직원합계"
 from employees
 group by job_id
-order by count(*) asc;
+order by count(*) asc; --order by 뒤에 식을 사용할 때는 별칭을 사용하는게 더 좋음
+
+select job_id, count(*) cntClerk
+from employees
+group by job_id
+order by cntClerk asc; --order by 뒤에 식을 사용할 때는 별칭을 사용하는게 더 좋음
 
 /*
 4. 급여가 10000달러 이상인 직원들의 담당업무별 합계인원수를 출력하시오.
@@ -52,7 +57,12 @@ select max(salary)-min(salary) "최고최소급여차" from employees;
 /*
 6. 각 부서에 대해 부서번호, 사원수, 부서 내의 모든 사원의 평균급여를 출력하시오. 평균급여는 소수점 둘째자리로 반올림하시오.
 */
-select department_id, count(*), to_char(round(avg(salary),2),'999,000.00') "평균급여"
+select department_id, count(*), to_char(avg(salary),'999,000.00') "평균급여"
 from employees
 group by department_id
 order by department_id;
+
+select department_id, count(*), to_char(avg(salary),'999,000.00') Avgsalary
+from employees group by department_id
+order by Avgsalary desc;
+/*이와 같이 복잡한 계산식이 포함된 컬럼을 기준으로 정렬할 때는 별칭을 사용하는 것이 좋다*/

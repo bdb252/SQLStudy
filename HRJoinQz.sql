@@ -8,6 +8,10 @@ from
 where
     employees.department_id=departments.department_id
     and first_name='Janette';
+/*
+    오라클 방식은 표준방식에서 inner join대신 콤마를 이용해서 테이블을 조인하고
+    on절 대신 where절에 조인될 컬럼을 명시한다.
+*/
 
 /*
 2. inner join 방식중 SQL표준 방식을 사용하여 사원이름과 함께 그 사원이 소속된 부서명과 도시명을 출력하시오
@@ -15,10 +19,8 @@ where
 */
 select first_name, last_name, department_name, city
 from employees Em 
-    inner join departments De
-    on Em.department_id=De.department_id
-    inner join Locations Lo
-    on De.location_id=Lo.location_id;
+    inner join departments De on Em.department_id=De.department_id
+    inner join Locations Lo on De.location_id=Lo.location_id;
 
 /*
 3. 사원의 이름(FIRST_NAME)에 'A'가 포함된 모든사원의 이름과 부서명을 출력하시오.
@@ -26,14 +28,14 @@ from employees Em
 */
 select first_name, last_name, department_name
 from employees Em
-    inner join departments De
-        on Em.department_id=De.department_id
+    inner join departments De on Em.department_id=De.department_id
 where first_name like '%A%';
 
 /*
 4. “city : Toronto / state_province : Ontario” 에서 근무하는 모든 사원의 이름, 업무명, 부서번호 및 부서명을 출력하시오.
 출력목록] 사원이름, 업무명, 부서ID, 부서명
 */
+--내쿼리
 select first_name, last_name, 
     job_title, 
     Em.department_id, department_name
@@ -44,6 +46,15 @@ from employees Em
         on De.location_id=Lo.location_id
     inner join jobs Jo
         on Em.job_id=Jo.job_id
+where city='Toronto' and state_province='Ontario'; 
+--답쿼리
+select 
+    first_name, last_name, job_title, 
+    department_id, department_name
+from locations
+    inner join departments using(location_id)
+    inner join employees using(department_id)
+    inner join jobs using(job_id)
 where city='Toronto' and state_province='Ontario'; 
 
 /*
@@ -70,12 +81,9 @@ select
     department_id, department_name,
     city
 from employees
-    inner join jobs
-        using (job_id)
-    inner join departments
-        using(department_id)
-    inner join locations
-        using(location_id)
+    inner join jobs using (job_id)
+    inner join departments using(department_id)
+    inner join locations using(location_id)
 where department_id=50;
 
 /*
@@ -87,26 +95,45 @@ where job_id='FI_ACCOUNT'; --결과 매니저아이디=108
 
 select first_name, last_name, manager_id from employees 
 where manager_id=108; --결과 5행
-
+--셀프조인으로 해당 사원의 매니저 정보 출력
 select distinct EmManager.first_name, EmManager.last_name, EmManager.job_id, EmManager.salary
 from employees EmManager, employees EmFIACC
 where EmFIACC.job_id='FI_ACCOUNT' 
     and EmFIACC.manager_id=EmManager.employee_id;
+    /*
+    사원의 매니저아이디와 매니저의 사원아이디를 셀프조인의 조건으로 사용
+    사원의 담당업무를 조건으로 추가.
+    */
 
 /*
 8. 각 부서의 메니져가 누구인지 출력하시오. 출력결과는 부서번호를 오름차순 정렬하시오.
 출력목록] 부서번호, 부서명, 이름, 성, 급여, 담당업무ID
 ※ departments 테이블에 각 부서의 메니져가 있습니다.
 */
+--내쿼리
 select 
-    departments.department_id, department_name, 
+    De.department_id, department_name, 
     first_name, last_name, salary, job_id
-from employees
-    inner join departments
-        on employees.department_id = departments.department_id
+from employees Em
+    inner join departments De
+        on Em.department_id=De.department_id
+where De.manager_id=Em.employee_id
+order by De.department_id;
+--using 사용했을 때
+select 
+    department_id, department_name, 
+    first_name, last_name, salary, job_id
+from employees 
+    inner join departments using(department_id)
 where departments.manager_id=employees.employee_id
-order by departments.department_id;
-
+order by department_id;
+--답쿼리
+select 
+    De.department_id, department_name, 
+    first_name, last_name, salary, job_id
+from departments De inner join employees Em
+    on De.manager_id=Em.employee_id
+order by De.department_id;
 /*
 9. 담당업무명이 Sales Manager인 사원들의 입사년도와 입사년도(hire_date)별 평균 급여를 출력하시오. 출력시 년도를 기준으로 오름차순 정렬하시오. 
 출력항목 : 입사년도, 평균급여
@@ -122,9 +149,16 @@ order by hire_date asc;
 --날짜를 모두 연도로 묶으니까 해결
 select to_char(hire_date,'yyyy'), avg(salary)
 from employees
-    inner join jobs
-        on employees.job_id=jobs.job_id
+    inner join jobs using(job_id)
 where job_title='Sales Manager'
 group by to_char(hire_date,'yyyy')
 order by to_char(hire_date,'yyyy') asc;
 
+--SQL실행순서상 select에서 별칭 사용하면 group by에서는 별칭 못씀
+select to_char(hire_date,'yyyy') hyear, avg(salary)
+from employees
+    inner join jobs
+        on employees.job_id=jobs.job_id
+where job_title='Sales Manager'
+group by to_char(hire_date,'yyyy')
+order by hyear asc;
