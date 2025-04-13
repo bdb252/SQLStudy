@@ -465,3 +465,100 @@ select * from trigger_dept_original;
    백업테이블에는 1개의 레코드만 삽입된다.*/
 select * from trigger_dept_backup;
 
+-----------------------------------------------------------------------
+/*
+아래와 같은 테이블을 생성하시오. 
+◈ 상품코드관리 : sh_product_code
+컬럼명     자료형     설명
+p_code    숫자형     상품코드. PK
+category_name 문자형 카테고리명
+*/
+create table sh_product_code (
+    p_code number primary key,
+    category_name varchar2(50)
+);
+
+/*
+◈ 상품관리 : sh_goods
+컬럼명       자료형     설명
+g_idx       숫자형  상품일련번호. PK
+goods_name  문자형  상품명
+goods_price 숫자형  상품가격
+regidate    날짜형  등록일
+p_code      숫자형  상품코드. sh_product_code 테이블의 p_code 를 참조하는 FK
+*/
+create table sh_goods (
+    g_idx number primary key,
+    goods_name varchar2(50),
+    goods_price number,
+    regidate date,
+    p_code number references sh_product_code (p_code)
+);
+
+/*
+◈ 상품관리 : sh_goods_log
+컬럼명       자료형     설명
+log_idx     숫자형     로그일련번호. PK
+goods_name  문자형     상품명
+goods_idx   숫자형     상품일련번호
+p_action    날짜형     로그액션 입력시 : ‘Insert’ , 삭제시 : ‘Delete’ 입력(check제약조건 적용)
+*/
+create table sh_goods_log(
+    log_idx number primary key,
+    goods_name varchar2(50),
+    goods_idx number,
+    p_action varchar2(50) check(p_action in ('Insert' ,'Delete'))
+);
+
+/*
+▣ 시퀀스 생성
+앞에서 생성한 3개의 테이블에서 사용할 시퀀스를 생성하시오. 
+테이블 당 하나씩의 시퀀스를 생성하는 것을 권장하나, 여기서는 하나만 생성하여 사용한다. 
+시퀀스명 : seq_total_idx
+증가치, 시작, 최소값 : 1로 지정
+최대값, 사이클(cycle), 캐시(cache) : 사용하지 않음
+*/
+create sequence seq_total_idx
+    increment by 1
+    start with 1
+    minvalue 1
+    nomaxvalue
+    nocycle
+    nocache;
+
+/*
+▣ 더미데이터 입력
+아래 설명에 따라 적당한 레코드를 입력하시오. 
+*/
+/*
+sh_product_code  테이블
+앞에서 생성한 시퀀스를 이용해서 3~5개 정도의 상품코드 레코드를 입력한다.
+예)  가전, 도서, 의류 등
+*/
+insert into sh_product_code values (1, 'appliances');
+insert into sh_product_code values (2, 'book');
+insert into sh_product_code values (3, 'clothes');
+
+/*
+sh_goods 테이블
+앞에서 생성한 시퀀스를 이용해서 5~10개 정도의 상품 레코드를 입력한다. 
+예) 냉장고, 세탁기 / 사피엔스, 총균쇠 / 롱패딩, 레깅스, 청바지 등
+가격과 등록일은 본인이 적당히 정하면 된다. 
+단, 상품은 상품코드와 일치해야 한다. 
+예) 가전 - 냉장고 / 도서 - 총균쇠
+*/
+insert into sh_goods values (100,'냉장고',100000,sysdate,1);
+insert into sh_goods values (101,'세탁기',150000,sysdate,1);
+insert into sh_goods values (102,'건조기',200000,sysdate,1);
+insert into sh_goods values (103,'사피엔스',10000,sysdate,2);
+insert into sh_goods values (104,'총균쇠',15000,sysdate,2);
+insert into sh_goods values (105,'해리포터',20000,sysdate,2);
+insert into sh_goods values (106,'롱패딩',50000,sysdate,3);
+insert into sh_goods values (107,'레깅스',30000,sysdate,3);
+insert into sh_goods values (108,'청바지',40000,sysdate,3);
+
+/*
+sh_goods_log 테이블
+별도로 입력하지 않는다. 
+*/
+
