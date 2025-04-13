@@ -525,7 +525,8 @@ create sequence seq_total_idx
     nomaxvalue
     nocycle
     nocache;
-
+commit;
+SELECT * FROM user_sequences WHERE sequence_name = 'SEQ_TOTAL_IDX';
 /*
 ▣ 더미데이터 입력
 아래 설명에 따라 적당한 레코드를 입력하시오. 
@@ -562,3 +563,77 @@ sh_goods_log 테이블
 별도로 입력하지 않는다. 
 */
 
+--상품수정 프로시저
+create or replace procedure ShopUpdateGoods(
+    g_id in number,
+    g_name in varchar2,
+    g_price in number,
+    g_code in number,
+    returnVal out number
+    )
+is
+begin
+    update sh_goods
+    set goods_name=g_name,goods_price=g_price,p_code=g_code
+    where g_idx=g_id;
+    
+    if SQL%Found then
+        returnVal := 1;
+        commit;
+    else
+        returnVal := 0;
+    end if;
+end;
+/
+
+--상품삭제 프로시저
+create or replace procedure ShopDeleteGoods(
+    g_id in number,
+    returnVal out number)
+is
+begin
+    delete from sh_goods where g_idx=g_id;
+    
+    if sql%found then
+        returnVal := 1;
+        commit;
+    else
+        returnVal := 0;
+    end if;
+end;
+/
+
+create table goods_log
+as
+select * from sh_goods where 1=0;
+
+create or replace trigger shop_log_trigger
+    after
+    insert or delete
+    on sh_goods
+    for each row
+begin
+    if inserting then
+        insert into goods_log
+        values(
+            :new.g_idx,
+            :new.goods_name,
+            :new.goods_price,
+            :new.regidate,
+            :new.p_code
+        );
+    elsif deleting then
+        delete from goods_log
+            where g_idx=:old.g_idx;
+    end if;
+end;
+/
+commit;
+/*
+INSERT INTO sh_goods (g_idx, goods_name, goods_price, regidate, p_code)
+VALUES (1001, '테스트상품', 10000, SYSDATE, 1);
+
+SELECT trigger_name, status
+FROM user_triggers
+WHERE table_name = 'SH_GOODS';
+*/
