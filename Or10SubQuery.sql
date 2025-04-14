@@ -223,34 +223,61 @@ select min(sal) from emp);
 /*
 04.평균 급여가 가장 적은 직급(job)과 평균 급여를 표시하시오.
 */
+--직급별 평균급여 인출
 select job, avg(sal) from emp group by job;
-
-select job, avg(sal) from emp where sal <= all(
-select avg(sal) from emp group by job);
-
+--오류발생. 그룹함수 2개를 겹쳤기 때문에 job컬럼을 제외해야 함.
+select job, min(avg(sal)) from emp group by job;
+--정상실행됨. 직급중 평균급여가 최소인 레코드 인출
+select min(avg(sal)) from emp group by job;
+--답쿼리
+/*
+평균급여는 물리적으로 존재하는 컬럼이 아니므로 where절에는 사용할 수 없고 having절에 사용해야 한다.
+즉 평균급여가 1016.666..인 직급을 출력하는 방식으로 서브쿼리를 작성해야 한다.
+*/
+select job, avg(sal) from emp group by job 
+having avg(sal)=(select min(avg(sal)) from emp group by job);
+--내쿼리틀림
+/*
+select job, avg(sal) from emp where sal = (
+    select min(sal) from (select job, avg(sal) from emp group by job) group by job
+);
+*/
 /*
 05.각부서의 최소 급여를 받는 사원의 이름, 급여, 부서번호를 표시하시오.
 */
 select ename, sal, deptno from emp where sal in (
 select min(sal) from emp group by deptno );
+--부서번호로 그룹화해서 최소급여를 얻어온 후 복수행 연산자 in으로 연결해서 서브쿼리문 작성
+select ename, sal, deptno from emp where (deptno,sal) in (
+select deptno,min(sal) from emp group by deptno);
 
 /*
 06.담당 업무가 분석가(ANALYST)인 사원보다 급여가 적으면서 업무가 분석가(ANALYST)가 아닌 사원들을 표 시(사원번호, 이름, 담당업무, 급여)하시오.
 */
-select sal from emp where job='ANALYST';
-select sal from emp where not (job='ANALYST');
-
-select empno, ename, job, sal from emp where sal<(
-select sal from emp where job='ANALYST');
-
+select * from emp where job='ANALYST';
+select * from emp where not (job='ANALYST') and sal<3000;
+--내쿼리(단일행연산자)
+/*
+담당업무가 ANALYST인 경우에는 인출한 결과가 1개이므로 아래와 같이 단일행 연산자로 서브쿼리를 만들 수 있다.
+*/
 select empno, ename, job, sal from emp 
-where sal<(select sal from emp where job='ANALYST') and
-    not job='ANALYST';
+where sal<(select sal from emp where job='ANALYST') 
+    and not job='ANALYST';
+--답쿼리(복수행연산자)
+/*
+담당업무를 SALESMAN으로 변경하면 4개의 레코드가 인출된다. 
+따라서 단일행 연산자로 쿼리문을 작성하면 에러가 발생하므로 이때는 복수행 연산자인 all혹은 any를 사용해야 한다.
+*/
+select empno, ename, job, sal from emp 
+where sal<all(select sal from emp where job='ANALYST') 
+    and not job='SALESMAN';
+
 /*
 07.이름에 K가 포함된 사원과 같은 부서에서 일하는 사원의 사원번호와 이름을 표시하는 질의를 작성하시오
 */
 select ename, job, deptno from emp where ename like '%K%';
-select * from emp where deptno in (
+--or대신 in절을 사용하면 컬럼명의 중복을 제거할 수 있다.
+ select * from emp where deptno in (
 select deptno from emp where ename like '%K%');
 
 /*
@@ -287,6 +314,5 @@ select * from emp where deptno in
 select deptno from emp where ename='BLAKE';
 
 select ename, hiredate from emp where deptno=(
-select deptno from emp where ename='BLAKE') and
-not ename='BLAKE';
+select deptno from emp where ename='BLAKE') and ename<>'BLAKE';
 
