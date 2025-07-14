@@ -275,3 +275,94 @@ print member_auth;
 execute MyMemberAuth('xxxxxx','uyyyyyyyy', :member_auth);
 print member_auth;
 
+/*
+데이터 시각화 - Folium
+경기 대학/대학원 정보를 OpenAPI를 통해 제공받아 테이블에 입력한다.
+*/
+create table g_univ(	
+	idx number primary key, 
+	sigun varchar2(20) not null, 
+	faclt varchar2(100) not null, 
+	addr varchar2(200) not null, 
+	latitude number(20,10) not null, 
+	longitude number(20,10) not null
+); 
+desc g_univ;
+
+select * from g_univ;
+select count(*) from g_univ;
+drop table g_univ;
+
+create table delivery_apps(	
+	idx number primary key, 
+	sigun varchar2(20) not null, 
+	str_nm varchar2(100) not null, 
+    bizregno varchar2(30) not null,
+    indutype_nm varchar2(100) not null,
+    addr varchar2(200) not null, 
+	latitude number(20,10) not null, 
+	longitude number(20,10) not null
+); 
+desc delivery_apps;
+
+select * from delivery_apps;
+drop table delivery_apps;
+
+select * from delivery_apps where sigun='파주시';
+create sequence myboard_seq
+  increment by 1
+  start with 1
+  minvalue 1
+  nomaxvalue
+  nocycle
+  nocache;
+drop SEQUENCE myboard_seq;
+
+
+/*
+JSP수업에서 사용할 새로운 계정 생성
+*/
+--새로운 계정은 system에서 실행
+alter session set "_ORACLE_SCRIPT"=true;
+create user musthave identified by 1234;
+grant connect, resource, unlimited tablespace to musthave;
+--계정을 생성한 후 musthave에서 아래 부분 실행
+create table member (
+	id varchar2(30) not null,
+	pass varchar2(40) not null,
+	name varchar2(50) not null,
+	regidate date default sysdate,
+	primary key (id)
+);
+
+insert into member (id, pass, name) values ('test', '1234', '테스트');
+commit;
+
+create table board (
+    num number primary key,
+    title varchar2(200) not null,
+    content varchar2(2000) not null,
+    id varchar2(30) not null, 
+    postdate date default sysdate not null,
+    visitcount number default 0 not null
+);
+--외래키 생성
+alter table board 
+    add constraint board_mem_fk 
+        foreign key (id) 
+            references member (id); 
+--시퀀스 생성
+create sequence seq_board_num
+    increment by 1
+    start with 1
+    minvalue 1
+    nomaxvalue
+    nocycle
+    nocache;
+--더미데이터입력
+insert into member (id, pass, name) values ('musthave', '1234', '머스트해브');
+insert into board (num, title, content, id, postdate, visitcount)
+    values (seq_board_num.nextval, '제목1입니다', '내용1입니다', 'musthave', sysdate, 0);
+commit;
+
+
